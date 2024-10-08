@@ -220,8 +220,7 @@ def main():
         
         for k, beam in enumerate(beams):
             for j, bomb in enumerate(bombs):
-                    if beam is not None:
-                        if bomb is not None:
+                    if beam is not None and bomb is not None:
                             if beam.rct.colliderect(bomb.rct):
                                 explosions.append(Explosion(bomb))
                                 
