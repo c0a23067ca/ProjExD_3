@@ -164,6 +164,21 @@ class Score:
         self.img = self.fonto.render(f"スコア:{score}", 0, (0,0,255))
         screen.blit(self.img,self.rct)
 
+class Explosion:
+
+    def __init__(self , bomb:"Bomb"):
+        self.img = pg.image.load(f"fig/explosion.gif")
+        self.explosion = [self.img, pg.transform.flip(self.img, True, True)]
+        self.rct = self.img.get_rect()
+        self.rct.center = bomb.rct.center
+        self.life = 50
+
+    def update(self, screen: "pg.Surface"):
+        self.life-=1
+        if self.life > 0:
+            self.img=self.explosion[self.life%2]
+        screen.blit(self.img, self.rct)
+
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
@@ -175,6 +190,7 @@ def main():
     #bomb = Bomb((255, 0, 0), 10)
     bombs = [Bomb((255, 0, 0), 10) for i in range(NUM_OF_BOMBS)]
     beams = []
+    explosions = []
     clock = pg.time.Clock()
     tmr = 0
     while True:
@@ -187,6 +203,10 @@ def main():
                  beams.append(beam)        #インスタンスをbeamsリストに追加 
         screen.blit(bg_img, [0, 0])
         score.update(point,screen)
+        
+        for explosion in explosions:
+           explosion.update(screen)
+    
         for bomb in bombs:
             if bird.rct.colliderect(bomb.rct):
                 # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
@@ -203,6 +223,8 @@ def main():
                     if beam is not None:
                         if bomb is not None:
                             if beam.rct.colliderect(bomb.rct):
+                                explosions.append(Explosion(bomb))
+                                
                                 beams[k], bombs[j] = None, None
                                 bird.change_img(6, screen)
                                 point+=1
@@ -211,9 +233,13 @@ def main():
                             if not yoko:            #画面外にビームがいったら
                                 beams[k] = None     #削除
         
+        for l, explosion in enumerate(explosions):
+                                    if explosion.life <= 0:
+                                         explosions[l] = None
+
         bombs = [bomb for bomb in bombs if bomb is not None]
         beams = [beam for beam in beams if beam is not None]
-
+        explosions = [explosion for explosion in explosions if explosion is not None]
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
         for beam in beams :
